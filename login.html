@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="auth-card">
+  <div class="auth-icon">🔐</div>
+  <h1>Student Login</h1>
+  <p class="subtitle">Use your IOBM email and password</p>
+
+  {% if error %}
+  <div class="alert-danger">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="/login">
+    <div class="field">
+      <label>IOBM Email</label>
+      <input type="email" name="email" placeholder="e.g. std_34552@iobm.edu.pk"
+             required autofocus autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Your password"
+             required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-primary">Sign In Securely 🔒</button>
+  </form>
+
+  <div class="security-note">
+    🛡️ Passwords hashed with bcrypt · OTP 2FA · One-time voting window
+  </div>
+
+  <div class="divider"></div>
+  <p style="text-align:center; font-size:13px; color:#666;">
+    New student? <a href="/register">Register here</a> &nbsp;|&nbsp;
+    Admin? <a href="/admin">Admin Panel</a>
+  </p>
+</div>
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Header -->
+<div style="text-align:center; margin-bottom:2rem;">
+  <div style="font-size:48px; margin-bottom:12px;">🏆</div>
+  <div style="display:inline-block; background:#f0fdf4; border:1px solid #86efac;
+              color:#065f46; padding:6px 18px; border-radius:99px; font-size:13px;
+              font-weight:600; margin-bottom:12px;">
+    ✅ Election Finalized · Results Officially Signed
+  </div>
+  <h1 style="font-size:28px; font-weight:800; margin-bottom:8px;">IEEE IOBM Election Results 2026</h1>
+  <p style="color:#666; font-size:14px;">
+    Signed on {{ signed_at.strftime('%B %d, %Y at %H:%M') }} UTC ·
+    <a href="/verify-results" style="color:#1D9E75;">Verify Signature</a>
+  </p>
+</div>
+
+<!-- Voting ended banner -->
+<div style="background:#fef3c7; border:1px solid #fcd34d; border-radius:12px;
+            padding:14px 20px; margin-bottom:2rem; text-align:center;">
+  <strong style="color:#92400e;">⏹️ Voting has ended.</strong>
+  <span style="color:#92400e; font-size:14px;"> The election has been finalized. No further votes can be cast.</span>
+</div>
+
+<!-- Winners Podium -->
+<h2 style="font-size:18px; margin-bottom:16px; font-weight:700;">🥇 Elected Leaders</h2>
+<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:2.5rem;">
+  {% for pos in positions %}
+  {% set pos_id = pos.id %}
+  {% if pos_id in winners %}
+  {% set winner = winners[pos_id] %}
+  <div style="background:linear-gradient(135deg, #0a3d2e, #1D9E75); border-radius:16px;
+              padding:1.5rem; color:white; text-align:center;">
+    <div style="font-size:32px; margin-bottom:8px;">{{ pos.icon }}</div>
+    <div style="font-size:11px; color:#a7f3d0; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+      {{ winner.title }}
+    </div>
+    <div style="font-size:18px; font-weight:800; margin-bottom:4px;">{{ winner.name }}</div>
+    <div style="font-size:12px; color:#6ee7b7;">🏆 Elected</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
+<!-- Detailed Results -->
+<h2 style="font-size:18px; margin-bottom:16px; font-weight:700;">📊 Detailed Vote Count</h2>
+<div class="results-grid" style="margin-bottom:2rem;">
+  {% for pos_id, pos_data in results.items() %}
+  <div class="result-card">
+    <h3 style="display:flex; align-items:center; gap:8px;">
+      {% for pos in positions %}{% if pos.id == pos_id %}{{ pos.icon }}{% endif %}{% endfor %}
+      {{ pos_data.title }}
+    </h3>
+    {% set cands = pos_data.candidates %}
+    {% if cands %}
+      {% set total_votes = cands.values() | sum %}
+      {% for cand_name, count in cands.items() %}
+      {% set is_winner = (pos_id in winners and winners[pos_id].name == cand_name) %}
+      <div class="result-row" style="{% if is_winner %}background:#f0fdf4; border-radius:8px; padding:4px 6px;{% endif %}">
+        <span class="cand-label" style="{% if is_winner %}color:#0F6E56; font-weight:700;{% endif %}">
+          {% if is_winner %}🏆 {% endif %}{{ cand_name }}
+        </span>
+        <div class="progress-wrap">
+          <div class="progress-bar" style="width:{{ (count / total_votes * 100)|round if total_votes > 0 else 0 }}%;
+               {% if is_winner %}background:#1D9E75;{% else %}background:#94a3b8;{% endif %}"></div>
+        </div>
+        <span class="vote-count">{{ count }}</span>
+      </div>
+      {% endfor %}
+      <div style="font-size:11px; color:#888; margin-top:8px;">Total votes: {{ total_votes }}</div>
+    {% else %}
+      <p style="font-size:12px; color:#aaa;">No votes cast for this position.</p>
+    {% endif %}
+    <div class="anonymized-note">🔐 Voter identities not stored with votes</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Student voting status (if logged in) -->
+{% if student %}
+<div class="section-card" style="margin-bottom:2rem;">
+  <h2 style="font-size:15px; margin-bottom:12px;">👤 Your Voting Status</h2>
+  {% if voted_positions %}
+  <p style="font-size:13px; color:#555; margin-bottom:12px;">
+    You voted in <strong>{{ voted_positions | length }}</strong> out of 4 positions.
+  </p>
+  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+    {% for pos in positions %}
+    <span style="padding:5px 14px; border-radius:99px; font-size:12px; font-weight:600;
+                 {% if pos.id in voted_positions %}
+                 background:#d1fae5; color:#065f46;
+                 {% else %}
+                 background:#f1f5f9; color:#94a3b8;
+                 {% endif %}">
+      {{ pos.icon }} {{ pos.title }}
+      {% if pos.id in voted_positions %}✅{% else %}—{% endif %}
+    </span>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="font-size:13px; color:#888;">You did not cast any votes in this election.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Verify signature link -->
+<div style="text-align:center; padding:1.5rem; background:white; border-radius:12px;
+            border:1px solid #e5e7eb;">
+  <p style="font-size:13px; color:#666; margin-bottom:10px;">
+    🔏 These results are digitally signed with RSA. Anyone can independently verify their authenticity.
+  </p>
+  <a href="/verify-results" class="btn-outline">🔍 Verify RSA Signature</a>
+</div>
+
+{% endblock %}

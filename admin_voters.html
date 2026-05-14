@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>👥 Eligible Voters</h1>
+    <p>Manage approved voter list — only these emails can register an account.</p>
+  </div>
+  <a href="/admin" class="btn-outline">← Back to Dashboard</a>
+</div>
+
+<!-- Add Voter -->
+<div class="section-card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:16px; margin-bottom:12px;">➕ Add Eligible Voter</h2>
+  <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end;">
+    <div>
+      <label style="font-size:12px; color:#555; display:block; margin-bottom:4px;">Full Name</label>
+      <input type="text" id="v-name" placeholder="e.g. Zoya Nayab" class="field-inline">
+    </div>
+    <div>
+      <label style="font-size:12px; color:#555; display:block; margin-bottom:4px;">IOBM Email</label>
+      <input type="email" id="v-email" placeholder="std_XXXXX@iobm.edu.pk" class="field-inline">
+    </div>
+    <button class="btn-vote" onclick="addVoter()">Add Voter</button>
+  </div>
+  <p id="add-voter-msg" style="font-size:13px; margin-top:8px;"></p>
+</div>
+
+<!-- Search -->
+<div class="section-card" style="margin-bottom:1.5rem;">
+  <form method="GET" action="/admin/voters" style="display:flex; gap:10px; align-items:center;">
+    <input type="text" name="q" value="{{ search }}"
+           placeholder="🔍 Search by name or email..."
+           class="field-inline" style="flex:1;">
+    <button type="submit" class="btn-vote" style="width:auto; padding:10px 20px;">Search</button>
+    {% if search %}
+    <a href="/admin/voters" class="btn-outline">✕ Clear</a>
+    {% endif %}
+  </form>
+  {% if search %}
+  <p style="font-size:13px; color:#888; margin-top:8px;">
+    Showing results for "<strong>{{ search }}</strong>" — {{ voters.total }} found
+  </p>
+  {% endif %}
+</div>
+
+<!-- Voters Table -->
+<div class="section-card" style="padding:0; overflow:hidden;">
+  <div style="padding:1rem 1.25rem; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="font-size:15px;">All Eligible Voters</h2>
+    <span style="font-size:13px; color:#888;">Total: {{ voters.total }}</span>
+  </div>
+
+  {% if voters.items %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <thead>
+        <tr style="background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+          <th style="padding:10px 16px; text-align:left; color:#555; font-weight:600;">#</th>
+          <th style="padding:10px 16px; text-align:left; color:#555; font-weight:600;">Name</th>
+          <th style="padding:10px 16px; text-align:left; color:#555; font-weight:600;">Email</th>
+          <th style="padding:10px 16px; text-align:left; color:#555; font-weight:600;">Status</th>
+          <th style="padding:10px 16px; text-align:left; color:#555; font-weight:600;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for voter in voters.items %}
+        {% set student = voter.email %}
+        <tr style="border-bottom:1px solid #f0f0f0;" id="row-{{ voter.id }}">
+          <td style="padding:10px 16px; color:#aaa;">{{ loop.index + (voters.page - 1) * 10 }}</td>
+          <td style="padding:10px 16px; font-weight:500;">{{ voter.name }}</td>
+          <td style="padding:10px 16px; font-family:monospace; color:#555;">{{ voter.email }}</td>
+          <td style="padding:10px 16px;">
+            <span style="background:#d1fae5; color:#065f46; padding:3px 10px; border-radius:99px; font-size:11px; font-weight:600;">
+              ✅ Eligible
+            </span>
+          </td>
+          <td style="padding:10px 16px;">
+            <button onclick="deleteVoter({{ voter.id }}, '{{ voter.name }}', '{{ voter.email }}')"
+                    style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c;
+                           padding:4px 12px; border-radius:6px; font-size:11px; cursor:pointer; font-weight:600;">
+              🗑️ Remove
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if voters.pages > 1 %}
+  <div style="padding:1rem 1.25rem; display:flex; gap:8px; justify-content:center; border-top:1px solid #f0f0f0;">
+    {% if voters.has_prev %}
+    <a href="?page={{ voters.prev_num }}{% if search %}&q={{ search }}{% endif %}" class="btn-outline">← Prev</a>
+    {% endif %}
+    {% for page_num in voters.iter_pages() %}
+      {% if page_num %}
+        <a href="?page={{ page_num }}{% if search %}&q={{ search }}{% endif %}"
+           class="btn-outline"
+           style="{% if page_num == voters.page %}background:#1D9E75; color:white; border-color:#1D9E75;{% endif %}">
+          {{ page_num }}
+        </a>
+      {% else %}
+        <span style="padding:6px;">…</span>
+      {% endif %}
+    {% endfor %}
+    {% if voters.has_next %}
+    <a href="?page={{ voters.next_num }}{% if search %}&q={{ search }}{% endif %}" class="btn-outline">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="padding:3rem; text-align:center; color:#aaa;">
+    {% if search %}
+      <p style="font-size:16px;">😕 No voters found for "{{ search }}"</p>
+      <a href="/admin/voters" style="color:#1D9E75; font-size:13px;">Clear search</a>
+    {% else %}
+      <p style="font-size:16px;">No eligible voters added yet.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<script>
+function addVoter() {
+  var name  = document.getElementById('v-name').value.trim();
+  var email = document.getElementById('v-email').value.trim();
+  var msg   = document.getElementById('add-voter-msg');
+  if (!name || !email) { msg.style.color='#b91c1c'; msg.textContent='⚠️ Both fields required.'; return; }
+  fetch('/admin/add-voter', { method:'POST', body: new URLSearchParams({name, email}) })
+    .then(function(r){return r.json();}).then(function(d){
+      if (d.success) {
+        msg.style.color='#0F6E56'; msg.textContent='✅ '+email+' added successfully.';
+        document.getElementById('v-name').value=''; document.getElementById('v-email').value='';
+        setTimeout(function(){location.reload();}, 1200);
+      } else { msg.style.color='#b91c1c'; msg.textContent='❌ '+(d.error||'Error'); }
+    });
+}
+
+function deleteVoter(id, name, email) {
+  if (!confirm('Are you sure you want to remove "' + name + '" (' + email + ') from the eligible voters list?\n\nThey will no longer be able to register or vote.')) return;
+  fetch('/admin/delete-voter/' + id, { method: 'POST' })
+    .then(function(r){return r.json();}).then(function(d){
+      if (d.success) {
+        var row = document.getElementById('row-' + id);
+        row.style.background = '#fef2f2';
+        row.style.opacity = '0.5';
+        setTimeout(function(){location.reload();}, 600);
+      } else { alert('Error: ' + (d.error||'Failed to delete')); }
+    });
+}
+</script>
+
+{% endblock %}

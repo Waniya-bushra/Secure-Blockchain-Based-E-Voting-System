@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card" style="text-align:center; max-width:480px;">
+  <div style="font-size:56px; margin-bottom:16px;">🗳️</div>
+  <h1 style="margin-bottom:8px;">Voting Session Ended</h1>
+  <p class="subtitle" style="margin-bottom:1.5rem;">
+    Your 10-minute voting window has closed for the IEEE IOBM Student Branch Elections.
+  </p>
+  <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+    <p style="font-size:14px; color:#0F6E56; font-weight:600;">✅ Session Permanently Closed</p>
+    <p style="font-size:13px; color:#555; margin-top:6px;">
+      Your submitted votes have been anonymously recorded on the blockchain.
+      You can still log in to view election results once the election is finalized.
+    </p>
+  </div>
+  <a href="/login" class="btn-primary" style="display:inline-block; text-decoration:none; margin-bottom:10px;">
+    🔐 Log In to View Results
+  </a>
+  <div class="security-note" style="margin-top:1rem;">
+    ⚡ IEEE IOBM Student Branch Elections 2026 · Blockchain Secured · RSA Signed
+  </div>
+</div>
+{% endblock %}

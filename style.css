@@ -1,0 +1,313 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f6f9;
+  color: #333;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────────── */
+.navbar {
+  background: #0a3d2e;
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-brand { font-size: 18px; font-weight: 600; }
+
+.secure-badge {
+  background: #1D9E75;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  margin-left: 8px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.nav-links a {
+  color: #ccc;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+/* ── Session Timer ───────────────────────────────────────────────── */
+.session-timer {
+  font-size: 13px;
+  font-family: monospace;
+  color: #ccc;
+  background: rgba(255,255,255,0.08);
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── Layout ──────────────────────────────────────────────────────── */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* ── Auth Card ───────────────────────────────────────────────────── */
+.auth-card {
+  max-width: 420px;
+  margin: 3rem auto;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.auth-icon { font-size: 36px; text-align: center; margin-bottom: 12px; }
+
+h1 { font-size: 22px; text-align: center; margin-bottom: 6px; }
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Form Fields ─────────────────────────────────────────────────── */
+.field { margin-bottom: 1rem; }
+
+.field label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.field input, .field-inline {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.field input:focus, .field-inline:focus {
+  outline: none;
+  border-color: #1D9E75;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.btn-primary {
+  width: 100%;
+  background: #1D9E75;
+  color: white;
+  border: none;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) { background: #0F6E56; }
+
+.btn-primary:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  border: 1px solid #ccc;
+  background: none;
+  color: inherit;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-vote {
+  width: 100%;
+  background: #1D9E75;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-vote:hover { background: #0F6E56; }
+
+/* ── Alerts ──────────────────────────────────────────────────────── */
+.alert-danger {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 1rem;
+}
+
+/* ── Section card (admin panels) ─────────────────────────────────── */
+.section-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.section-card.chain-ok   { border-color: #86efac; background: #f0fdf4; }
+.section-card.chain-fail { border-color: #fca5a5; background: #fef2f2; }
+
+/* ── Misc ────────────────────────────────────────────────────────── */
+.security-note {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.divider { border-top: 1px solid #eee; margin: 1.5rem 0; }
+
+.page-header { margin-bottom: 1.5rem; }
+.page-header h1 { font-size: 24px; }
+.page-header p  { color: #555; margin-top: 4px; font-size: 14px; }
+
+/* ── Society / Vote Cards ────────────────────────────────────────── */
+.societies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.society-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.society-card.voted {
+  border-color: #1D9E75;
+  background: #f0fdf9;
+}
+
+.soc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.soc-name { font-weight: 600; font-size: 15px; }
+
+.badge-voted {
+  font-size: 12px; color: #0F6E56;
+  background: #d1fae5; padding: 3px 10px; border-radius: 99px;
+}
+
+.badge-open {
+  font-size: 12px; color: #1e40af;
+  background: #dbeafe; padding: 3px 10px; border-radius: 99px;
+}
+
+.candidates { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+.candidate-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1px solid #e5e7eb;
+  border-radius: 8px; cursor: pointer; font-size: 14px;
+}
+
+.candidate-row:hover { background: #f9fafb; }
+.candidate-row input[type="radio"] { accent-color: #1D9E75; }
+.voted-msg { font-size: 13px; color: #0F6E56; }
+
+/* ── Results Grid ────────────────────────────────────────────────── */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 1rem;
+}
+
+.result-card {
+  background: white; border-radius: 12px;
+  padding: 1.25rem; border: 1px solid #e5e7eb;
+}
+
+.result-card h3 { font-size: 15px; margin-bottom: 12px; color: #111; }
+
+.result-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; font-size: 13px;
+}
+
+.cand-label { width: 130px; flex-shrink: 0; }
+
+.progress-wrap {
+  flex: 1; height: 8px; background: #f0f0f0;
+  border-radius: 99px; overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%; background: #1D9E75;
+  border-radius: 99px; transition: width 0.4s;
+}
+
+.vote-count { width: 24px; text-align: right; font-weight: 600; }
+.anonymized-note { font-size: 11px; color: #888; margin-top: 10px; }
+
+/* ── Audit Log Table ─────────────────────────────────────────────── */
+.log-table {
+  background: white; border-radius: 12px;
+  overflow: hidden; border: 1px solid #e5e7eb; margin-top: 8px;
+}
+
+.log-header {
+  display: grid; grid-template-columns: 80px 120px 1fr 100px;
+  padding: 10px 16px; font-size: 12px; font-weight: 600;
+  color: #555; background: #f9fafb; border-bottom: 1px solid #eee;
+}
+
+.log-row {
+  display: grid; grid-template-columns: 80px 120px 1fr 100px;
+  padding: 8px 16px; font-size: 12px;
+  border-bottom: 1px solid #f0f0f0; font-family: monospace;
+}
+
+.log-row.log-warn { background: #fffbeb; color: #b45309; }
+/* ── Stat boxes ──────────────────────────────────────────────────────── */
+.stat-box {
+  background: white; border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 1rem; text-align: center;
+}
+.stat-number { font-size: 32px; font-weight: 700; color: #0F6E56; }
+.stat-label  { font-size: 12px; color: #888; margin-top: 4px; }

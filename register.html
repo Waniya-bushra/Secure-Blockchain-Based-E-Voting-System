@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="auth-card">
+  <div class="auth-icon">📝</div>
+  <h1>Create Account</h1>
+  <p class="subtitle">Your IOBM email must be on the approved voter list.</p>
+
+  {% if error %}
+  <div class="alert-danger">⚠️ {{ error }}</div>
+  {% endif %}
+
+  {% if success %}
+  <div class="alert-success">✅ {{ success }} <a href="/login">Log in →</a></div>
+  {% endif %}
+
+  {% if not success %}
+  <form method="POST" action="/register" id="register-form">
+
+    <div class="field">
+      <label>IOBM Email</label>
+      <input type="email" name="email" id="email"
+             placeholder="e.g. std_34552@iobm.edu.pk" required autofocus>
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" id="password"
+             placeholder="Create a strong password" required
+             oninput="checkStrength(this.value)">
+
+      <div style="margin-top:8px;">
+        <div id="strength-bar-wrap" style="height:6px; background:#f0f0f0; border-radius:99px; overflow:hidden;">
+          <div id="strength-bar" style="height:100%; width:0%; border-radius:99px; transition:width 0.3s, background 0.3s;"></div>
+        </div>
+        <p id="strength-label" style="font-size:12px; color:#888; margin-top:4px;"></p>
+      </div>
+
+      <ul id="pw-rules" style="margin-top:8px; padding-left:0; list-style:none; font-size:12px; color:#888;">
+        <li id="rule-len"    >⬜ At least 8 characters</li>
+        <li id="rule-upper"  >⬜ At least one uppercase letter</li>
+        <li id="rule-number" >⬜ At least one number</li>
+        <li id="rule-symbol" >⬜ At least one special character (!@#$%^&*)</li>
+      </ul>
+    </div>
+
+    <div class="field">
+      <label>Confirm Password</label>
+      <input type="password" name="confirm_password" id="confirm_password"
+             placeholder="Re-enter password" required
+             oninput="checkMatch()">
+      <p id="match-msg" style="font-size:12px; margin-top:4px;"></p>
+    </div>
+
+    <button type="submit" class="btn-primary" id="register-btn" disabled>
+      Send Verification Code 📧
+    </button>
+  </form>
+
+  <div class="security-note">
+    🛡️ A 6-digit OTP will be sent to your email to activate your account
+  </div>
+
+  <div class="divider"></div>
+  <p style="text-align:center; font-size:13px; color:#666;">
+    Already registered? <a href="/login">Log in here</a>
+  </p>
+  {% endif %}
+</div>
+
+<script>
+function checkStrength(pw) {
+  const rules = {
+    len:    pw.length >= 8,
+    upper:  /[A-Z]/.test(pw),
+    number: /[0-9]/.test(pw),
+    symbol: /[!@#$%^&*()\-_=+\[\]{}|;:,.<>?]/.test(pw),
+  };
+  setRule('rule-len',    rules.len);
+  setRule('rule-upper',  rules.upper);
+  setRule('rule-number', rules.number);
+  setRule('rule-symbol', rules.symbol);
+  const score  = Object.values(rules).filter(Boolean).length;
+  const bar    = document.getElementById('strength-bar');
+  const label  = document.getElementById('strength-label');
+  const colors = ['', '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71'];
+  const labels = ['', 'Weak 🔴', 'Fair 🟠', 'Good 🟡', 'Strong 🟢'];
+  bar.style.width      = (score * 25) + '%';
+  bar.style.background = colors[score] || '#f0f0f0';
+  label.textContent    = pw.length ? labels[score] : '';
+  checkSubmitReady();
+}
+function setRule(id, passed) {
+  const el = document.getElementById(id);
+  el.textContent = (passed ? '✅' : '⬜') + el.textContent.slice(1);
+  el.style.color  = passed ? '#0F6E56' : '#888';
+}
+function checkMatch() {
+  const pw  = document.getElementById('password').value;
+  const cpw = document.getElementById('confirm_password').value;
+  const msg = document.getElementById('match-msg');
+  if (!cpw) { msg.textContent = ''; return; }
+  if (pw === cpw) {
+    msg.textContent = '✅ Passwords match';
+    msg.style.color = '#0F6E56';
+  } else {
+    msg.textContent = '❌ Passwords do not match';
+    msg.style.color = '#e74c3c';
+  }
+  checkSubmitReady();
+}
+function checkSubmitReady() {
+  const pw   = document.getElementById('password').value;
+  const cpw  = document.getElementById('confirm_password').value;
+  const btn  = document.getElementById('register-btn');
+  const allRules = pw.length >= 8 && /[A-Z]/.test(pw) &&
+                   /[0-9]/.test(pw) && /[!@#$%^&*()\-_=+\[\]{}|;:,.<>?]/.test(pw);
+  btn.disabled = !(allRules && pw === cpw);
+}
+</script>
+
+{% endblock %}

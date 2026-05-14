@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="auth-card">
+  <div class="auth-icon">📧</div>
+
+  {% if context == 'registration' %}
+    <h1>Verify Your Email</h1>
+    <p class="subtitle">Enter the 6-digit code sent to your email to activate your account.</p>
+    <form method="POST" action="/verify-registration" id="otp-form">
+  {% else %}
+    <h1>Two-Factor Verification</h1>
+    <p class="subtitle">Enter the 6-digit code sent to your email to complete login.</p>
+    <form method="POST" action="/verify-otp" id="otp-form">
+  {% endif %}
+
+  {% if error %}
+  <div class="alert-danger">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <div id="resend-msg" style="display:none; margin-bottom:1rem;"></div>
+
+    <div class="field">
+      <label>One-Time Password (OTP)</label>
+      <input type="text" name="otp" id="otp-input"
+             placeholder="______" maxlength="6"
+             inputmode="numeric" pattern="[0-9]{6}"
+             autocomplete="one-time-code"
+             required autofocus
+             style="font-size:28px; letter-spacing:12px; text-align:center; font-family:monospace;">
+    </div>
+
+    <button type="submit" class="btn-primary">Verify Code ✅</button>
+  </form>
+
+  <div style="text-align:center; margin-top:1rem;">
+    <p style="font-size:13px; color:#888; margin-bottom:8px;">Didn't receive the code?</p>
+    <button onclick="resendOTP()" id="resend-btn"
+            style="background:none; border:1px solid #1D9E75; color:#1D9E75;
+                   padding:8px 20px; border-radius:8px; cursor:pointer;
+                   font-size:13px; font-weight:600;">
+      🔄 Resend OTP
+    </button>
+    <p id="resend-timer" style="font-size:12px; color:#aaa; margin-top:6px;"></p>
+  </div>
+
+  <div class="security-note">
+    🛡️ Code expires in 10 minutes · Do not share it with anyone
+  </div>
+
+  <div class="divider"></div>
+  <p style="text-align:center; font-size:13px; color:#666;">
+    {% if context == 'registration' %}
+      Wrong email? <a href="/register">Go back</a>
+    {% else %}
+      Wrong account? <a href="/login">Go back</a>
+    {% endif %}
+  </p>
+</div>
+
+<script>
+// Auto-submit when 6 digits entered
+document.getElementById('otp-input').addEventListener('input', function () {
+  this.value = this.value.replace(/\D/g, '');
+  if (this.value.length === 6) {
+    this.closest('form').submit();
+  }
+});
+
+// Resend OTP with cooldown
+var resendCooldown = 0;
+
+function resendOTP() {
+  if (resendCooldown > 0) return;
+
+  var btn = document.getElementById('resend-btn');
+  var msg = document.getElementById('resend-msg');
+  var timer = document.getElementById('resend-timer');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending…';
+
+  fetch('/resend-otp', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        msg.style.display = 'block';
+        msg.style.background = '#f0fdf4';
+        msg.style.border = '1px solid #86efac';
+        msg.style.color = '#166534';
+        msg.style.padding = '10px 14px';
+        msg.style.borderRadius = '8px';
+        msg.style.fontSize = '14px';
+        msg.textContent = '✅ ' + data.message;
+
+        // 30 second cooldown
+        resendCooldown = 30;
+        btn.textContent = '🔄 Resend OTP';
+
+        var interval = setInterval(function() {
+          resendCooldown--;
+          if (resendCooldown <= 0) {
+            clearInterval(interval);
+            btn.disabled = false;
+            timer.textContent = '';
+          } else {
+            timer.textContent = 'You can resend again in ' + resendCooldown + 's';
+          }
+        }, 1000);
+      } else {
+        msg.style.display = 'block';
+        msg.style.background = '#fef2f2';
+        msg.style.border = '1px solid #fca5a5';
+        msg.style.color = '#b91c1c';
+        msg.style.padding = '10px 14px';
+        msg.style.borderRadius = '8px';
+        msg.style.fontSize = '14px';
+        msg.textContent = '❌ ' + (data.error || 'Failed to resend OTP.');
+        btn.disabled = false;
+        btn.textContent = '🔄 Resend OTP';
+      }
+    })
+    .catch(function() {
+      msg.style.display = 'block';
+      msg.textContent = '❌ Network error. Please try again.';
+      btn.disabled = false;
+      btn.textContent = '🔄 Resend OTP';
+    });
+}
+</script>
+
+{% endblock %}

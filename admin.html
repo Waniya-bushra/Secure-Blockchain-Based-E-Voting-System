@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if login %}
+<div class="auth-card">
+  <div class="auth-icon">🛡️</div>
+  <h1>Admin Panel</h1>
+  <p class="subtitle">IEEE IOBM Election Officers only</p>
+  {% if error %}<div class="alert-danger">⚠️ {{ error }}</div>{% endif %}
+  <form method="POST" action="/admin">
+    <div class="field"><label>Username</label>
+      <input type="text" name="username" placeholder="admin" required autofocus></div>
+    <div class="field"><label>Password</label>
+      <input type="password" name="password" required></div>
+    <button type="submit" class="btn-primary">Access Dashboard 🔒</button>
+  </form>
+  <div class="security-note">🛡️ All actions logged · Brute force protected</div>
+</div>
+
+{% else %}
+
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+  <div>
+    <h1>⚡ IEEE IOBM Election Dashboard</h1>
+    <p>Total votes cast: <strong>{{ total }}</strong> &nbsp;|&nbsp; Voter identities cryptographically hidden</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="/admin/voters" class="btn-outline">👥 Manage Voters</a>
+    <a href="/logout" class="btn-outline">Log Out</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:1.5rem;">
+  <div class="stat-box"><div class="stat-number">{{ total_eligible }}</div><div class="stat-label">Eligible Voters</div></div>
+  <div class="stat-box"><div class="stat-number">{{ total_registered }}</div><div class="stat-label">Registered</div></div>
+  <div class="stat-box"><div class="stat-number">{{ total_voted }}</div><div class="stat-label">Have Voted</div></div>
+  <div class="stat-box"><div class="stat-number">{{ total }}</div><div class="stat-label">Total Votes</div></div>
+</div>
+
+<!-- Blockchain -->
+<div class="section-card {% if chain_ok %}chain-ok{% else %}chain-fail{% endif %}" style="margin-bottom:1.5rem;">
+  <strong>⛓️ Blockchain Ledger:</strong>
+  <span style="color:{% if chain_ok %}#0F6E56{% else %}#b91c1c{% endif %};">{{ chain_msg }}</span>
+</div>
+
+<!-- RSA Sign -->
+<div class="section-card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:16px; margin-bottom:8px;">🔏 Digital Signature (RSA)</h2>
+  {% if signed_result %}
+    <p style="color:#0F6E56; font-size:14px;">✅ Results signed on {{ signed_result.signed_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC</p>
+    <a href="/verify-results" class="btn-outline" style="display:inline-block; margin-top:8px;">🔍 Verify Results</a>
+  {% else %}
+    <p style="font-size:13px; color:#666; margin-bottom:10px;">Sign the final results with the RSA private key.</p>
+    <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="signResults()">✍️ Sign & Finalize Results</button>
+    <span id="sign-msg" style="font-size:13px; margin-left:12px;"></span>
+  {% endif %}
+</div>
+
+<!-- Add Candidate -->
+<div class="section-card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:16px; margin-bottom:4px;">🏆 Add Candidate</h2>
+  <p style="font-size:13px; color:#666; margin-bottom:12px;">⚠️ One candidate = one position only.</p>
+  <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end;">
+    <div>
+      <label style="font-size:12px; color:#555; display:block; margin-bottom:4px;">Full Name</label>
+      <input type="text" id="c-name" placeholder="Candidate name" class="field-inline">
+    </div>
+    <div>
+      <label style="font-size:12px; color:#555; display:block; margin-bottom:4px;">Position</label>
+      <select id="c-pos" class="field-inline">
+        <option value="president">President</option>
+        <option value="vp">Vice President</option>
+        <option value="secretary">General Secretary</option>
+        <option value="treasurer">Treasurer</option>
+      </select>
+    </div>
+    <button class="btn-vote" onclick="addCandidate()">Add</button>
+  </div>
+  <p id="add-cand-msg" style="font-size:13px; margin-top:8px;"></p>
+</div>
+
+<!-- Candidates per position with delete -->
+<h2 style="margin-bottom:12px;">🏅 Registered Candidates</h2>
+<div class="results-grid" style="margin-bottom:2rem;">
+  {% for pos in positions %}
+  <div class="result-card">
+    <h3>{{ pos.icon }} {{ pos.title }}</h3>
+    {% if pos.candidates %}
+      {% for cand in pos.candidates %}
+      <div class="result-row" style="justify-content:space-between; align-items:center;">
+        <span class="cand-label">{{ cand.name }}</span>
+        <button onclick="deleteCandidate({{ cand.id }}, '{{ cand.name }}', this)"
+                style="background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c;
+                       padding:3px 10px; border-radius:6px; font-size:11px; cursor:pointer;">
+          🗑️ Remove
+        </button>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p style="font-size:12px; color:#aaa;">No candidates yet.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Live Results -->
+<h2 style="margin-bottom:12px;">📊 Live Results</h2>
+<div class="results-grid">
+  {% for pos_id, pos_data in results.items() %}
+  <div class="result-card">
+    <h3>{{ pos_data.icon }} {{ pos_data.title }}</h3>
+    {% set pos_total = pos_data.candidates.values() | map(attribute='count') | sum %}
+    {% for cand_name, cand_data in pos_data.candidates.items() %}
+    <div class="result-row">
+      <span class="cand-label">{{ cand_name }}</span>
+      <div class="progress-wrap">
+        <div class="progress-bar"
+             style="width:{{ (cand_data.count / pos_total * 100)|round if pos_total > 0 else 0 }}%"></div>
+      </div>
+      <span class="vote-count">{{ cand_data.count }}</span>
+    </div>
+    {% endfor %}
+    <div class="anonymized-note">🔐 Voter identities not stored with votes</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Audit Log -->
+<h2 style="margin-top:2rem; margin-bottom:6px;">📋 Audit Log</h2>
+<p style="font-size:13px; color:#666; margin-bottom:10px;">Tamper-evident — HMAC-chained entries</p>
+<div class="log-table">
+  <div class="log-header"><span>Time</span><span>User</span><span>Action</span><span>IP</span></div>
+  {% for log in logs %}
+  <div class="log-row {% if 'FAILED' in log.action or 'DENIED' in log.action %}log-warn{% endif %}">
+    <span>{{ log.timestamp.strftime('%H:%M:%S') }}</span>
+    <span>{{ log.username }}</span>
+    <span>{{ log.action }}</span>
+    <span>{{ log.ip_addr }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<script>
+function signResults() {
+  var btn = event.target; var msg = document.getElementById('sign-msg');
+  btn.disabled = true; btn.textContent = 'Signing…';
+  fetch('/admin/sign-results', { method: 'POST' }).then(function(r){return r.json();}).then(function(d){
+    if (d.success) { msg.style.color='#0F6E56'; msg.textContent='✅ '+d.message; setTimeout(function(){location.reload();},1500); }
+    else { msg.style.color='#b91c1c'; msg.textContent='❌ '+(d.error||'Error'); btn.disabled=false; btn.textContent='✍️ Sign & Finalize Results'; }
+  });
+}
+
+function addCandidate() {
+  var name = document.getElementById('c-name').value.trim();
+  var position = document.getElementById('c-pos').value;
+  var msg = document.getElementById('add-cand-msg');
+  if (!name) { msg.style.color='#b91c1c'; msg.textContent='⚠️ Name required.'; return; }
+  fetch('/admin/add-candidate', { method:'POST', body: new URLSearchParams({name, position}) })
+    .then(function(r){return r.json();}).then(function(d){
+      if (d.success) { msg.style.color='#0F6E56'; msg.textContent='✅ '+name+' added.'; document.getElementById('c-name').value=''; setTimeout(function(){location.reload();},1200); }
+      else { msg.style.color='#b91c1c'; msg.textContent='❌ '+(d.error||'Error'); }
+    });
+}
+
+function deleteCandidate(id, name, btn) {
+  if (!confirm('Are you sure you want to remove "' + name + '" as a candidate?\n\nThis action cannot be undone.')) return;
+  btn.disabled = true; btn.textContent = '⏳';
+  fetch('/admin/delete-candidate/' + id, { method: 'POST' })
+    .then(function(r){return r.json();}).then(function(d){
+      if (d.success) { setTimeout(function(){location.reload();}, 500); }
+      else { alert('Error: ' + (d.error||'Failed')); btn.disabled=false; btn.textContent='🗑️ Remove'; }
+    });
+}
+</script>
+{% endblock %}

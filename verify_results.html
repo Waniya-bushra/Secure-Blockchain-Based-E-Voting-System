@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width:700px; margin:2rem auto;">
+
+  <div class="auth-icon">🔍</div>
+  <h1 style="text-align:center; margin-bottom:6px;">Verify Election Results</h1>
+  <p class="subtitle">Anyone can verify the authenticity of signed results using the public key.</p>
+
+  {% if no_results %}
+  <div class="alert-danger" style="text-align:center; margin-top:2rem;">
+    ⚠️ No signed results found yet. Election may still be ongoing.
+  </div>
+
+  {% else %}
+
+  <!-- Verification Status -->
+  <div class="section-card" style="margin-bottom:1.5rem; text-align:center;">
+    {% if is_valid %}
+      <p style="font-size:28px;">✅</p>
+      <p style="font-size:18px; font-weight:600; color:#0F6E56;">Signature Valid</p>
+      <p style="font-size:13px; color:#555;">
+        These results are authentic and have not been tampered with since signing.
+      </p>
+    {% else %}
+      <p style="font-size:28px;">❌</p>
+      <p style="font-size:18px; font-weight:600; color:#b91c1c;">Signature Invalid!</p>
+      <p style="font-size:13px; color:#555;">
+        WARNING: The results may have been modified after signing.
+      </p>
+    {% endif %}
+    <p style="font-size:12px; color:#888; margin-top:6px;">
+      Signed at: {{ signed_at.strftime('%Y-%m-%d %H:%M:%S') }} UTC
+    </p>
+  </div>
+
+  <!-- Final Results -->
+  <h2 style="font-size:16px; margin-bottom:12px;">📊 Signed Results</h2>
+  <div class="results-grid" style="margin-bottom:1.5rem;">
+    {% for soc_id, soc_data in results.items() %}
+    <div class="result-card">
+      <h3>{{ soc_data.name }}</h3>
+      {% set soc_total = soc_data.candidates.values() | sum %}
+      {% for cand, count in soc_data.candidates.items() %}
+      <div class="result-row">
+        <span class="cand-label">{{ cand }}</span>
+        <div class="progress-wrap">
+          <div class="progress-bar"
+               style="width:{{ (count / soc_total * 100)|round if soc_total > 0 else 0 }}%">
+          </div>
+        </div>
+        <span class="vote-count">{{ count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Public Key + Signature -->
+  <div class="section-card">
+    <h2 style="font-size:15px; margin-bottom:8px;">🔑 RSA Public Key (for manual verification)</h2>
+    <pre style="background:#f4f6f9; padding:12px; border-radius:8px; font-size:11px; overflow-x:auto; white-space:pre-wrap;">{{ public_key }}</pre>
+
+    <h2 style="font-size:15px; margin:12px 0 8px;">🖊️ Signature (truncated)</h2>
+    <pre style="background:#f4f6f9; padding:12px; border-radius:8px; font-size:11px; overflow-x:auto; white-space:pre-wrap;">{{ signature }}</pre>
+  </div>
+
+  <p style="text-align:center; margin-top:1.5rem;">
+    <a href="/" class="btn-outline">← Back to Home</a>
+  </p>
+
+  {% endif %}
+</div>
+
+{% endblock %}
