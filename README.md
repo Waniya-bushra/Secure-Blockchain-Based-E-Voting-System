@@ -186,13 +186,6 @@ Then open your browser and go to: **http://localhost:5000**
 
 ---
 
-## 📸 Screenshots
-
-> Add screenshots of your app here after running it.
-> `![Login Page](screenshots/login.png)`
-
----
-
 ## 👨‍💻 Author
 
 **Waniya** — IoBM, Karachi  
